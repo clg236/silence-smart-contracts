@@ -1,51 +1,86 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
-contract SavingsAccount {
-  struct Member{
-    uint id;
-    string name;
-    uint balance;
-  }
-  mapping (uint => Member) public members;
-  event savingsEvent(uint indexed _memberId);
-  uint public memberCount;
+pragma solidity >=0.8.0 <0.9.0;
 
-  constructor() public {
-    memberCount = 0;
-    addMember("chris",9000);
-    addMember("yassin",6000);
-  }
-  function addMember(string memory _name,uint _balance) public {
-    members[memberCount] = Member(memberCount,_name,_balance);
-    memberCount++;
-  }
-  //return Single structure
-  function get(uint _memberId) public view returns(Member memory) {
-    return members[_memberId];
-  }
-  //return Array of structure Value
-  function getMember() public view returns (uint[] memory, string[] memory,uint[] memory){
-      uint[]    memory id = new uint[](memberCount);
-      string[]  memory name = new string[](memberCount);
-      uint[]    memory balance = new uint[](memberCount);
-      for (uint i = 0; i < memberCount; i++) {
-          Member storage member = members[i];
-          id[i] = member.id;
-          name[i] = member.name;
-          balance[i] = member.balance;
-      }
+contract SFTU {
+    event Received(address _from, uint value);
+    address public owner; // this is me, I can do certain things but really shouldn't need to...
 
-      return (id, name,balance);
+    constructor(){
+        owner = msg.sender;
+        haterCount = 0;
+    } 
 
-  }
-  //return Array of structure
-  function getMembers() public view returns (Member[] memory){
-      Member[]    memory id = new Member[](memberCount);
-      for (uint i = 0; i < memberCount; i++) {
-          Member storage member = members[i];
-          id[i] = member;
-      }
-      return id;
-  }
+
+    /*
+        We use a data structure for Haters...
+            id: just a counter for now, should probably rando it
+            twitterid: this is the twitter id of the hater
+            payoutAddress: if the hater posts an ethereum address, this will be here
+            hasSTFU: has the hater stfu? this is only true if the payoutAddress is equal to the last tweet (for now)
+            paid: has this particular id been paid? 
+    */
+
+    struct Haters {
+        uint256 id;
+        uint256 twitterid;
+        address payable payoutAddress;
+        uint256 bounty;
+        bool hasSTFU;
+        bool paid;
+    }
+
+    mapping(uint => Haters) public haters;
+
+    uint256 haterCount;
+
+    /*
+        function: addHater(uint256 _id, uint256 _bounty)
+        this function allows anyone to add a Hater by providing an id and a bounty
+        the hater initially has the payout address set to whoever sends the bounty (so that they can get it back later)
+    */
+
+    function addHater(uint256 _twitterid, uint256 _bounty) public {
+        haters[tripcount] = Hater(haterCount, _twitterid, payable(msg.sender), _bounty, false, false);
+        haterCount++;
+    }
+
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function haterSTFU(uint _twitterid) public {
+        for (uint i=0; i < haters.length; i++) {
+            if (haters[i].twitterid == _twitterid) {
+                haters[i].hasSTFU = true;
+            } 
+        }
+    }
+
+    function payHater(uint256 _twitterid, address payable _address) public {
+        // loop through the haters to find the one with the right id
+        for (uint i=0; i < haters.length; i++) {
+            if (haters[i].twitterid == _twitterid && haters[i].hasSTFU) {
+                haters[i].payoutAddress = _address;
+                _address.transfer(haters[i].bounty);
+                haters[i].paid = true;
+            } 
+        }
+    }
+
+    function listHaters() public view returns (Haters[] memory) {
+        Haters[] memory lhaters = new Haters[](tripcount);
+        for (uint i =0; i < haterCount; i++) {
+            Hater storage lhater = haters[];
+            lhaters[i] = lhater;
+        }
+        return lhaters;
+    }
+
+    receive() external payable {
+        // emit an payment event
+    }
+
+    fallback() external payable {
+        // emit an fallback payment event
+    }
 }
